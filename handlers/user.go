@@ -9,16 +9,22 @@ import (
 
 func GetUsers(userService *service.Userservice) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		users := userService.GetAllUsers()
-		json.NewEncoder(w).Encode(users)
+		users := userService.GetAllUsers(r.Context())
+		err := json.NewEncoder(w).Encode(users)
+		if err != nil {
+			return
+		}
 	}
 }
 func CreateUser(userService *service.Userservice) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		var req CreateUserRequest
-		json.NewDecoder(r.Body).Decode(&req)
+		err := json.NewDecoder(r.Body).Decode(&req)
+		if err != nil {
+			return
+		}
 
-		user, err := userService.CreateUser(req.Name, req.Email, req.Age)
+		user, err := userService.CreateUser(r.Context(), req.Name, req.Email, req.Age)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusBadRequest)
 			return
@@ -31,20 +37,26 @@ func CreateUser(userService *service.Userservice) http.HandlerFunc {
 		}
 
 		w.WriteHeader(http.StatusCreated)
-		json.NewEncoder(w).Encode(resp)
+		err = json.NewEncoder(w).Encode(resp)
+		if err != nil {
+			return
+		}
 	}
 }
 func GetUserByID(userService *service.Userservice) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		id := chi.URLParam(r, "id")
 
-		user, err := userService.GetUserByID(id)
+		user, err := userService.GetUserByID(r.Context(), id)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusNotFound)
 			return
 		}
 
-		json.NewEncoder(w).Encode(user)
+		err = json.NewEncoder(w).Encode(user)
+		if err != nil {
+			return
+		}
 	}
 }
 func UpdateUser(userService *service.Userservice) http.HandlerFunc {
@@ -62,7 +74,7 @@ func UpdateUser(userService *service.Userservice) http.HandlerFunc {
 			return
 		}
 
-		updated, err := userService.UpdateUser(id, req.Name, req.Email)
+		updated, err := userService.UpdateUser(r.Context(), id, req.Name, req.Email, req.Age)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusBadRequest)
 			return
@@ -72,10 +84,14 @@ func UpdateUser(userService *service.Userservice) http.HandlerFunc {
 			ID:    updated.ID,
 			Name:  updated.Name,
 			Email: updated.Email,
+			Age:   updated.Age,
 		}
 
 		w.Header().Set("Content-Type", "application/json")
-		json.NewEncoder(w).Encode(resp)
+		err = json.NewEncoder(w).Encode(resp)
+		if err != nil {
+			return
+		}
 	}
 }
 func DeleteUser(userService *service.Userservice) http.HandlerFunc {
@@ -87,7 +103,7 @@ func DeleteUser(userService *service.Userservice) http.HandlerFunc {
 			return
 		}
 
-		if err := userService.DeleteUser(id); err != nil {
+		if err := userService.DeleteUser(r.Context(), id); err != nil {
 			http.Error(w, err.Error(), http.StatusNotFound)
 			return
 		}
