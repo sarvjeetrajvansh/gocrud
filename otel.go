@@ -2,6 +2,8 @@ package main
 
 import (
 	"context"
+	"github.com/sarvjeetrajvansh/gocrud/internal/config"
+	"strconv"
 	"time"
 
 	"go.opentelemetry.io/otel"
@@ -11,22 +13,22 @@ import (
 	semconv "go.opentelemetry.io/otel/semconv/v1.26.0"
 )
 
-func initTracer() func(context.Context) error {
+func initTracer(cfg *config.Config) func(context.Context) error {
 	// OTLP exporter → Jaeger
 	exporter, err := otlptracehttp.New(
 		context.Background(),
-		otlptracehttp.WithEndpoint("localhost:4318"),
+		otlptracehttp.WithEndpoint(cfg.OtelEndpoint),
 		otlptracehttp.WithInsecure(),
 	)
 	if err != nil {
 		panic(err)
 	}
-
+	SamplingRatio, _ := strconv.ParseFloat(cfg.SamplingRatio, 64)
 	tp := sdktrace.NewTracerProvider(
 		// ✅ sample 10% of requests
 		sdktrace.WithSampler(
 			sdktrace.ParentBased(
-				sdktrace.TraceIDRatioBased(1.0),
+				sdktrace.TraceIDRatioBased(SamplingRatio),
 			),
 		),
 		sdktrace.WithBatcher(
@@ -36,7 +38,7 @@ func initTracer() func(context.Context) error {
 		sdktrace.WithResource(
 			resource.NewWithAttributes(
 				semconv.SchemaURL,
-				semconv.ServiceName("gocrud"),
+				semconv.ServiceName(cfg.AppName),
 			),
 		),
 	)

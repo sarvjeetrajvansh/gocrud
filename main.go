@@ -6,6 +6,7 @@ import (
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/joho/godotenv"
 	"github.com/sarvjeetrajvansh/gocrud/handlers"
+	"github.com/sarvjeetrajvansh/gocrud/internal/config"
 	"github.com/sarvjeetrajvansh/gocrud/service"
 	"github.com/sarvjeetrajvansh/gocrud/storage"
 	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
@@ -14,13 +15,12 @@ import (
 	"os"
 )
 
-const PORT string = ":8080"
-
 func main() {
 
 	_ = godotenv.Load()
+	cfg := config.Load()
 
-	shutdown := initTracer()
+	shutdown := initTracer(cfg)
 	defer shutdown(context.Background())
 
 	logger := slog.New(
@@ -49,8 +49,8 @@ func main() {
 		r.Delete("/{id}", handlers.DeleteUser(userService))
 	})
 
-	handler := otelhttp.NewHandler(r, "gocrud")
-
+	handler := otelhttp.NewHandler(r, cfg.AppName)
+	PORT := ":" + cfg.HTTPPort
 	http.ListenAndServe(PORT, handler)
 
 }
