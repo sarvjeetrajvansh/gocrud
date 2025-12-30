@@ -4,6 +4,7 @@ import (
 	"context"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
+	"github.com/joho/godotenv"
 	"github.com/sarvjeetrajvansh/gocrud/handlers"
 	"github.com/sarvjeetrajvansh/gocrud/service"
 	"github.com/sarvjeetrajvansh/gocrud/storage"
@@ -16,6 +17,8 @@ import (
 const PORT string = ":8080"
 
 func main() {
+
+	_ = godotenv.Load()
 
 	shutdown := initTracer()
 	defer shutdown(context.Background())
