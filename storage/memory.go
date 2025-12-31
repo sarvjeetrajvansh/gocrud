@@ -25,8 +25,8 @@ func (s *Userstore) Save(ctx context.Context, user models.User) models.User {
 	_, span := tracer.Start(ctx, "UserStore.Save")
 	defer span.End()
 
-	user.ID = strconv.Itoa(s.nextID)
-	s.users[user.ID] = user
+	user.ID = uint(s.nextID)
+	s.users[strconv.Itoa(int(user.ID))] = user
 	s.nextID++
 	return user
 }
@@ -54,17 +54,17 @@ func (s *Userstore) FindByID(ctx context.Context, id string) (models.User, error
 	return user, nil
 }
 
-func (s *Userstore) Update(ctx context.Context, id string, updated models.User) (models.User, error) {
+func (s *Userstore) Update(ctx context.Context, id uint, updated models.User) (models.User, error) {
 	tracer := otel.Tracer("storage.user")
 	_, span := tracer.Start(ctx, "UserStore.Update")
 	defer span.End()
 
-	_, ok := s.users[id]
+	_, ok := s.users[strconv.Itoa(int(id))]
 	if !ok {
 		return models.User{}, errors.New("user not found")
 	}
 	updated.ID = id
-	s.users[id] = updated
+	s.users[strconv.Itoa(int(id))] = updated
 	return updated, nil
 }
 

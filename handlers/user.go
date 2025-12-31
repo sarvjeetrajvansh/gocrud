@@ -5,11 +5,12 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/sarvjeetrajvansh/gocrud/service"
 	"net/http"
+	"strconv"
 )
 
 func GetUsers(userService *service.Userservice) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		users := userService.GetAllUsers(r.Context())
+		users, _ := userService.GetAllUsers(r.Context())
 		err := json.NewEncoder(w).Encode(users)
 		if err != nil {
 			return
@@ -31,7 +32,7 @@ func CreateUser(userService *service.Userservice) http.HandlerFunc {
 		}
 
 		resp := UserResponse{
-			ID:    user.ID,
+			ID:    strconv.Itoa(int(user.ID)),
 			Name:  user.Name,
 			Email: user.Email,
 		}
@@ -45,9 +46,9 @@ func CreateUser(userService *service.Userservice) http.HandlerFunc {
 }
 func GetUserByID(userService *service.Userservice) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		id := chi.URLParam(r, "id")
+		id, _ := strconv.ParseUint(chi.URLParam(r, "id"), 10, 64)
 
-		user, err := userService.GetUserByID(r.Context(), id)
+		user, err := userService.GetUserByID(r.Context(), uint(id))
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusNotFound)
 			return
@@ -62,8 +63,8 @@ func GetUserByID(userService *service.Userservice) http.HandlerFunc {
 func UpdateUser(userService *service.Userservice) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 
-		id := chi.URLParam(r, "id")
-		if id == "" {
+		id, _ := strconv.ParseUint(chi.URLParam(r, "id"), 10, 64)
+		if id < 0 {
 			http.Error(w, "invalid id", http.StatusBadRequest)
 			return
 		}
@@ -74,14 +75,14 @@ func UpdateUser(userService *service.Userservice) http.HandlerFunc {
 			return
 		}
 
-		updated, err := userService.UpdateUser(r.Context(), id, req.Name, req.Email, req.Age)
+		updated, err := userService.UpdateUser(r.Context(), uint(id), req.Name, req.Email, req.Age)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusBadRequest)
 			return
 		}
 
 		resp := UserResponse{
-			ID:    updated.ID,
+			ID:    strconv.Itoa(int(updated.ID)),
 			Name:  updated.Name,
 			Email: updated.Email,
 			Age:   updated.Age,
@@ -97,13 +98,13 @@ func UpdateUser(userService *service.Userservice) http.HandlerFunc {
 func DeleteUser(userService *service.Userservice) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 
-		id := chi.URLParam(r, "id")
-		if id == "" {
+		id, _ := strconv.ParseUint(chi.URLParam(r, "id"), 10, 64)
+		if id < 0 {
 			http.Error(w, "invalid id", http.StatusBadRequest)
 			return
 		}
 
-		if err := userService.DeleteUser(r.Context(), id); err != nil {
+		if err := userService.DeleteUser(r.Context(), uint(id)); err != nil {
 			http.Error(w, err.Error(), http.StatusNotFound)
 			return
 		}

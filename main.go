@@ -7,8 +7,9 @@ import (
 	"github.com/joho/godotenv"
 	"github.com/sarvjeetrajvansh/gocrud/handlers"
 	"github.com/sarvjeetrajvansh/gocrud/internal/config"
+	"github.com/sarvjeetrajvansh/gocrud/models"
 	"github.com/sarvjeetrajvansh/gocrud/service"
-	"github.com/sarvjeetrajvansh/gocrud/storage"
+	"github.com/sarvjeetrajvansh/gocrud/storage/postgres"
 	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 	"log/slog"
 	"net/http"
@@ -29,8 +30,11 @@ func main() {
 		}),
 	)
 
-	userStore := storage.NewUserstore()
-	userService := service.NewUserservice(userStore)
+	db := postgres.NewGormDB(cfg.DBDSN)
+	db.AutoMigrate(&models.User{})
+
+	userRepo := postgres.NewuserRepo(db)
+	userService := service.NewUserservice(userRepo)
 
 	r := chi.NewRouter()
 	r.Use(middleware.RequestID)
