@@ -7,6 +7,8 @@ import (
 	"github.com/sarvjeetrajvansh/gocrud/models"
 	"github.com/sarvjeetrajvansh/gocrud/storage"
 	"go.opentelemetry.io/otel"
+	"go.opentelemetry.io/otel/attribute"
+	"go.opentelemetry.io/otel/codes"
 )
 
 type Userservice struct {
@@ -70,5 +72,16 @@ func (s *Userservice) DeleteUser(ctx context.Context, id uuid.UUID) error {
 	tracer := otel.Tracer("service.user")
 	ctx, span := tracer.Start(ctx, "UserService.DeleteUser")
 	defer span.End()
-	return s.repo.Delete(ctx, id)
+
+	span.SetAttributes(
+		attribute.String("user.id", id.String()),
+	)
+
+	err := s.repo.Delete(ctx, id)
+	if err != nil {
+		span.RecordError(err)
+		span.SetStatus(codes.Error, err.Error())
+	}
+
+	return err
 }
