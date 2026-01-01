@@ -1,10 +1,13 @@
 package models
 
-import "time"
+import (
+	"github.com/google/uuid"
+	"time"
+)
 
 type User struct {
-	ID        uint   `gorm:"primary_key;AUTO_INCREMENT"`
-	Name      string `gorm:"not null;unique"`
+	ID        uuid.UUID `gorm:"type:uuid;primaryKey"`
+	Name      string    `gorm:"not null;unique"`
 	Age       int
 	Email     string `gorm:"not null;uniqueIndex"`
 	CreatedAt time.Time
