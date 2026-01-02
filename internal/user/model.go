@@ -1,4 +1,4 @@
-package models
+package user
 
 import (
 	"github.com/google/uuid"
@@ -7,7 +7,7 @@ import (
 
 type User struct {
 	ID        uuid.UUID `gorm:"type:uuid;primaryKey"`
-	Name      string    `gorm:"not null;unique"`
+	Name      string    `gorm:"not null"`
 	Age       int
 	Email     string `gorm:"not null;uniqueIndex"`
 	CreatedAt time.Time

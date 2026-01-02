@@ -1,4 +1,4 @@
-package main
+package observability
 
 import (
 	"context"
@@ -13,7 +13,7 @@ import (
 	semconv "go.opentelemetry.io/otel/semconv/v1.26.0"
 )
 
-func initTracer(cfg *config.Config) func(context.Context) error {
+func InitTracer(cfg *config.Config) func(context.Context) error {
 	// OTLP exporter → Jaeger
 	exporter, err := otlptracehttp.New(
 		context.Background(),

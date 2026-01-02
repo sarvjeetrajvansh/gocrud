@@ -1,4 +1,4 @@
-package main
+package observability
 
 import (
 	"log/slog"
@@ -11,13 +11,13 @@ import (
 
 // SlogFormatter plugs into chi RequestLogger
 type SlogFormatter struct {
-	logger *slog.Logger
+	Logger *slog.Logger
 }
 
 // NewLogEntry is called at request start
 func (f *SlogFormatter) NewLogEntry(r *http.Request) middleware.LogEntry {
 	return &SlogEntry{
-		logger: f.logger,
+		logger: f.Logger,
 		req:    r,
 		start:  time.Now(),
 	}
